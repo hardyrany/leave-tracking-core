@@ -1,0 +1,41 @@
+# ==============================================================================
+# Workflow: Block Direct PR to Main
+# 
+# Propósito: 
+# Atuar como um "porteiro" de segurança para a branch principal ('main').
+# Ele impede que qualquer pessoa faça um Pull Request (PR) para a 'main' a 
+# partir de branches de feature soltas (ex: feature/nova-funcionalidade).
+#
+# Regra de Negócio:
+# A 'main' só pode receber código vindo da 'develop' ou de branches de 
+# emergência (hotfix/*).
+# ==============================================================================
+
+name: Block Direct PR to Main
+
+# Gatilho: Dispara apenas quando alguém abre ou atualiza um PR com destino à 'main'
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Nome do job que vai aparecer na lista de status checks no GitHub
+  check-source-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Verifica a origem do PR usando um script Bash
+      - name: Verify source branch
+        run: |
+          echo "Source branch: ${{ github.head_ref }}"
+          
+          # Verifica se a branch de origem NÃO é a 'develop' E NÃO começa com 'hotfix/'
+          if [[ "${{ github.head_ref }}" != "develop" && "${{ github.head_ref }}" != hotfix/* ]]; then
+            echo "❌ ERROR: Pull Requests to 'main' must come from 'develop' or 'hotfix/*'."
+            echo "Blocking merge to protect the main branch."
+            # O comando 'exit 1' falha o workflow propositadamente, bloqueando o merge no GitHub
+            exit 1 
+          fi
+          
+          # Se a condição acima não for acionada, o PR vem da branch correta
+          echo "✅ Source branch is valid. Proceeding..."

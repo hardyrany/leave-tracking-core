@@ -1,0 +1,41 @@
+# ==============================================================================
+# Workflow: Continuous Delivery (CD)
+# 
+# Propósito: 
+# Automatizar a entrega do código após este ser aprovado na branch principal.
+# Este workflow constrói a imagem Docker pronta a ser usada (ex: num servidor).
+# ==============================================================================
+
+name: Continuous Delivery (CD)
+
+# Gatilho: Dispara APENAS quando há um push na 'main' (ou seja, após o merge de um PR)
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # Nome do job
+  build-and-deliver:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Descarrega o código
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Passo 2: Instala o Java 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # Passo 3: Empacota a aplicação (gera o .jar)
+      - name: Build JAR
+        run: mvn clean package -DskipTests
+
+      # Passo 4: Constrói a imagem Docker usando o Dockerfile do projeto.
+      # A imagem recebe uma tag com o hash do commit (github.sha) para ser rastreável.
+      - name: Build Docker Image
+        run: docker build -t leave-tracking-core:${{ github.sha }} .
