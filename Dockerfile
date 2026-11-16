@@ -20,8 +20,7 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Copia apenas o JAR gerado na fase de build
-COPY --from=build /app/target/grocery-shopping-core-1.0.0.jar app.jar
+# Copia apenas o JAR gerado na fase de build (Nome corrigido)
+COPY --from=build /app/target/leave-tracking-core-1.0.0.jar app.jar
 
-# Como é uma app de consola, não expomos portas, mas definimos o comando de arranque
 ENTRYPOINT ["java", "-jar", "app.jar"]
