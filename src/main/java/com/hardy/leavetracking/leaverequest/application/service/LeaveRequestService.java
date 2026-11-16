@@ -18,7 +18,8 @@ public class LeaveRequestService {
     private final LeaveRequestRepository leaveRequestRepository;
 
     /**
-     * Repositório de funcionários (necessário para validar se o funcionário existe).
+     * Repositório de funcionários (necessário para validar se o funcionário
+     * existe).
      */
     private final EmployeeRepository employeeRepository;
 
@@ -57,5 +58,37 @@ public class LeaveRequestService {
      */
     public List<LeaveRequest> getAllRequests() {
         return leaveRequestRepository.findAll();
+    }
+
+    /**
+     * Aprova um pedido de licença pendente.
+     */
+    public boolean approveRequest(int id, String approverName) {
+        LeaveRequest request = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new com.hardy.leavetracking.infra.exception.LeaveRequestNotFoundException(
+                        String.valueOf(id)));
+
+        boolean success = request.approve(approverName);
+
+        if (success) {
+            leaveRequestRepository.save(request);
+        }
+        return success;
+    }
+
+    /**
+     * Rejeita um pedido de licença pendente.
+     */
+    public boolean denyRequest(int id, String approverName, String reason) {
+        LeaveRequest request = leaveRequestRepository.findById(id)
+                .orElseThrow(() -> new com.hardy.leavetracking.infra.exception.LeaveRequestNotFoundException(
+                        String.valueOf(id)));
+
+        boolean success = request.deny(approverName, reason);
+
+        if (success) {
+            leaveRequestRepository.save(request);
+        }
+        return success;
     }
 }
